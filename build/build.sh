@@ -1,0 +1,1 @@
+odin build caspar-client.odin -debug
