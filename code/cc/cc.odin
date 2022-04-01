@@ -8,25 +8,45 @@ ShowInit :: proc(Show: ^show)
 	// pool memory
 	// create inital viewports
 	OpenglInit(Show)
+	UIInit(Show)
 }
 
 ShowUpdateAndRender :: proc(Show: ^show)
 {
-	// use input state
+	Show.State.QuadIndex = 0;
+	Show.State.VIndex = 0
+	Show.State.IIndex = 0
+
+	UIUpdate(Show)
 	OpenglRender(Show)
+
+	// NOTE reset all the keys
+	for k, i in Show.State.KeyState {
+		if k.Active
+		{
+			if i == int(keys.CTRL) || i == int(keys.SHIFT) || i == int(keys.ALT)
+			{
+			} else 
+			{
+				Show.State.KeyState[i].Active = false;
+			}
+			//Show.State.KeyState[i].WasDown = true;
+		}
+	}
 }
 
 show :: struct
 {
 	State: state,
+	Assets: assets,
 }
 
 state :: struct
 {
+	UID: uid,
 	BaseDir: string,
 
 	// SETTINGS
-	Window: rawptr,
 	WindowRes: v2,
 
 	// INPUT
@@ -38,7 +58,29 @@ state :: struct
 	MouseMiddle: mouse_state,
 	MouseRight: mouse_state,
 	MouseScroll: f64,
+
+	// UI
+	// UIPanelPool: pool,
+	// UIPanelMain: uid,
+	glState: opengl_state,
+	Vertices: [MAX_UI_ELEMENTS * 12]f32,
+	Indices: [MAX_UI_ELEMENTS * 6]u32,
+	QuadIndex: int,
+	UIPanelHot: uid,
+	UIIndex: int,
+	UIPanelCTX: v4,
+	UIMasterPanelUID: uid,
+	UIPanels: map[uid]^ui_panel,
+	CTX: v4,
+	VIndex:int,
+	IIndex:int, 
 }
+
+assets :: struct
+{
+	Fonts: map[uid]^superfont,
+}
+
 
 key_state :: struct
 {

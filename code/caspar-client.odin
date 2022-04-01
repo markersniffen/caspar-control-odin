@@ -29,14 +29,14 @@ main :: proc() {
 
 	glfw.MakeContextCurrent(window)
 	glfw.SetKeyCallback(window, cast(glfw.KeyProc)keyboard_callback)
-	glfw.SetCursorPosCallback(window, cast(glfw.CursorPosProc)mouse_callback)
+	glfw.SetMouseButtonCallback(window, cast(glfw.MouseButtonProc)mouse_callback)
 	
 
 	//- NOTE INITIALIZE PROJECT 
 	Show := new(show)
 	defer free(Show)
 	glfw.SetWindowUserPointer(window, Show)
-	Show.State.Window = window
+	Show.State.glState.Window = window
 	ShowInit(Show)
 
 
@@ -55,8 +55,6 @@ main :: proc() {
 		Show.State.DeltaMouse = Show.State.MousePos - OldMouse
 
 		ShowUpdateAndRender(Show)
-
-		glfw.SwapBuffers(window)
 	}
 }
 
