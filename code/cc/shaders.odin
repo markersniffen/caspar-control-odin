@@ -39,3 +39,66 @@ void main()
 	}
 }
 `
+
+//- NOTE FONT SHADER 
+FONT_VS ::
+`
+#version 330 core
+
+layout(location = 0) in vec3 vertex_position;
+
+out vec4 vertexColor;
+out float alpha;
+
+uniform vec2 Adv;
+uniform mat4 Aspect;
+uniform mat4 Transform;
+uniform float Alpha;
+
+uniform vec4 color;
+
+void main()
+{
+	vec3 Adv2 = vec3(Adv, 0);
+	gl_Position = vec4(vertex_position + Adv2, 1.0) * Aspect * Transform;
+    vertexColor = color;
+	alpha = Alpha;
+}
+`
+
+FONT_FRAG ::
+`
+#version 330 core
+
+in vec4 vertexColor;
+in float alpha;
+
+out vec4 FragColor;
+
+void main()
+{
+	FragColor = vertexColor * vec4(1,1,1,alpha);;
+}
+`
+
+//- NOTE TEXTURE SHADER 
+TEXTURE_VS ::
+`
+layout (location = 0) in vec3 position;
+
+
+void main()
+{
+    gl_Position = position;
+}
+`
+
+TEXTURE_FRAG ::
+`
+out vec4 FragColor;
+
+void main()
+{
+	FragColor = vec4(0,0,1,0);
+}
+`

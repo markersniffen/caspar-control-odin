@@ -11,6 +11,7 @@ UI_TEXT_TAB :: 4
 UI_CURSOR_THICK :: 3
 
 // COLORS
+WHITE	:: v3	{1.0,	1.0,	1.0}
 BG		:: v3	{0.1,	0.1,	0.1}
 BG_BAR	:: v3	{0.2,	0.2,	0.2}
 BORDER	:: v3	{0.5,	0.5,	0.5}
@@ -176,19 +177,19 @@ UIButtonRaw :: proc(Show: ^show, Name: string, Quad: v4, Just: int) -> bool
 	}
 	
 	PushQuad(Show, Quad, {0,0,0,0}, Color, 0);
-	// HalfTextWidth := UITextWidth(Name, UI_HEIGHT-4, Show)/2;
-	// PX :f32;
+	HalfTextWidth := UITextWidth(Show, Name, UI_HEIGHT-4)/2;
+	PX :f64;
 	
-	// if Just == 0
-	// {
-	// 	PX = Quad[0] + ((Quad[2] - Quad[0]) / 2) - HalfTextWidth - UI_TEXT_TAB;
-	// } else if Just == 1 {
-	// 	PX = Quad[0];
-	// } else if Just == -1 {
-	// 	PX = Quad[2] - (HalfTextWidth*2) - (UI_TEXT_TAB*2);
-	// }
+	if Just == 0
+	{
+		PX = Quad[0] + ((Quad[2] - Quad[0]) / 2) - HalfTextWidth - UI_TEXT_TAB;
+	} else if Just == 1 {
+		PX = Quad[0];
+	} else if Just == -1 {
+		PX = Quad[2] - (HalfTextWidth*2) - (UI_TEXT_TAB*2);
+	}
 	
-	// UIDrawText(Name, {PX, Quad[1]+2}, UI_HEIGHT-4, false, Show);
+	UIDrawText(Show, Name, {PX, Quad[1]+2}, UI_HEIGHT-4, false);
 	
 	if Hovering do PushQuad(Show, Quad, {0,0,0,0}, RED, 1);
 	return Result;
@@ -213,6 +214,83 @@ UIButtonX :: proc(Show: ^show, Names: []string) -> string
 	Show.State.CTX = Old;
 	UIAdvanceCTX(Show);
 	return Result;
+}
+
+UITextWidth :: proc(Show: ^show, S: string, Size: f64) -> f64
+{
+	Advance: v2 = {0,0};
+	
+	if len(S) > 0
+	{
+		for r, i in S
+		{
+			Char := r;
+			Idx :u64= (u64(Char) - GLYPH_OFFSET);
+			if int(Char) != 10
+			{
+				Advance.x += Size * f64(Show.State.UIFontOffset[Idx].x);
+			} else {
+				Advance.x = 0;
+				Advance.y -= Size;
+			}
+		}
+	}
+	return Advance.x;
+}
+
+UIDrawText :: proc(Show: ^show, S: string, Pos: v2, Size: f64, Editing: bool) -> f64
+{
+	Advance: v2 = {0,0};
+	CursorDrawn := false;
+	
+	if len(S) > 0
+	{
+		for r, i in S
+		{
+			Char := r;
+			Idx :u64= (u64(Char) - GLYPH_OFFSET);
+			P, D: v2;
+			UVs : [4]f32
+			if int(Char) != 10
+			{
+				Root :u64 = Idx / 10;
+				Rootf :f64 = f64(Root);
+				Pos2 :v2= {(f64(Idx) - (Rootf * 10))/10, (Rootf)/10};
+				UVs = {f32(Pos2.x), f32(Pos2.y), f32(Pos2.x + .05), f32(Pos2.y + 0.05)};
+				
+				P = { Pos.x + UI_TEXT_TAB, Pos.y + f64(Show.State.UIFontOffset[Idx].y) * Size + UI_TEXT_OFFSET } + Advance;
+				D = P + Size;
+				
+				Advance.x += Size * f64(Show.State.UIFontOffset[Idx].x);
+			} else {
+				Advance.x = 0;
+				Advance.y -= Size;
+			}
+			
+			Cursor: v4 = {Pos.x + UI_TEXT_TAB + Advance.x, Pos.y + Advance.y, Pos.x + UI_TEXT_TAB + Advance.x + UI_CURSOR_THICK, Pos.y+Size + Advance.y };
+			
+			Quad: v4= {P.x, P.y, D.x, D.y };
+			if Editing
+			{
+				if i+1 == Show.State.UICharIndex
+				{
+					PushQuad(Show, Cursor, {0,0,0,0}, RED, 0);
+					CursorDrawn = true;
+				} else if i == len(S)-1 && CursorDrawn != true {
+					Cursor = {Pos.x + UI_TEXT_TAB, P.y, Pos.x + UI_TEXT_TAB + UI_CURSOR_THICK, D.y }
+					PushQuad(Show, Cursor, {0,0,0,0}, RED, 0);
+				}
+			}
+			PushQuad(Show, Quad, UVs, WHITE, 0);
+		}
+	} else {
+		if Editing
+		{
+			Cursor :v4= { Pos.x + UI_TEXT_TAB, Pos.y, Pos.x + UI_TEXT_TAB + UI_CURSOR_THICK, Pos.y + Size }
+			PushQuad(Show, Cursor, {0,0,0,0}, RED, 0);
+		}
+	}
+	return Advance.x;
 }
 
 ui_panel :: struct

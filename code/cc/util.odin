@@ -25,3 +25,32 @@ IsInsideBounds :: proc(Pos: v2, A: v4) -> bool
 	if Pos.x > L && Pos.y > B && Pos.x < R && Pos.y < T do Result = true;
 	return Result;
 }
+
+StringToShort:: proc(S: string) -> short_string
+{
+	SS: short_string;
+	SS.Len = len(S);
+	copy(SS.Mem[:SS.Len], S);
+	assert(SS.Len <= SHORT_STRING_LENGTH);
+	return SS;
+}
+
+ShortToString :: proc(SS: ^short_string) -> string
+{
+	return string(SS.Mem[:SS.Len]);
+}
+
+
+StringToLong:: proc(S: string) -> long_string
+{
+	LS: long_string;
+	LS.Len = len(S);
+	copy(LS.Mem[:LS.Len], S);
+	assert(LS.Len <= LONG_STRING_LENGTH);
+	return LS;
+}
+
+LongToString :: proc(LS: ^long_string) -> string
+{
+	return string(LS.Mem[:LS.Len]);
+}

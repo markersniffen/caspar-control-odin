@@ -4,10 +4,10 @@ import "core:fmt"
 
 ShowInit :: proc(Show: ^show)
 {
-	// set initial show state
-	// pool memory
-	// create inital viewports
 	OpenglInit(Show)
+	ImportFont(Show, 50, "fonts/Roboto-Regular.ttf")
+	OpenglGenerateUIFont(Show)
+	free(Show.Assets.Font)
 	UIInit(Show)
 }
 
@@ -60,12 +60,15 @@ state :: struct
 	MouseScroll: f64,
 
 	// UI
+	UIFontOffset: [NUM_GLYPHS][2]f32,
 	// UIPanelPool: pool,
 	// UIPanelMain: uid,
 	glState: opengl_state,
 	Vertices: [MAX_UI_ELEMENTS * 12]f32,
 	Indices: [MAX_UI_ELEMENTS * 6]u32,
 	QuadIndex: int,
+	UILastChar: rune,
+	UICharIndex: int,
 	UIPanelHot: uid,
 	UIIndex: int,
 	UIPanelCTX: v4,
@@ -78,7 +81,7 @@ state :: struct
 
 assets :: struct
 {
-	Fonts: map[uid]^superfont,
+	Font: ^superfont,
 }
 
 
