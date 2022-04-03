@@ -13,9 +13,9 @@ ShowInit :: proc(Show: ^show)
 
 ShowUpdateAndRender :: proc(Show: ^show)
 {
-	Show.State.QuadIndex = 0;
-	Show.State.VIndex = 0
-	Show.State.IIndex = 0
+	Show.State.glState.QuadIndex = 0;
+	Show.State.glState.VIndex = 0
+	Show.State.glState.IIndex = 0
 
 	// NOTE update UI
 	UIUpdate(Show)
@@ -66,9 +66,6 @@ state :: struct
 	// UIPanelPool: pool,
 	// UIPanelMain: uid,
 	glState: opengl_state,
-	Vertices: [MAX_UI_ELEMENTS * 12]f32,
-	Indices: [MAX_UI_ELEMENTS * 6]u32,
-	QuadIndex: int,
 	UILastChar: rune,
 	UICharIndex: int,
 	UIPanelHot: uid,
@@ -77,8 +74,7 @@ state :: struct
 	UIMasterPanelUID: uid,
 	UIPanels: map[uid]^ui_panel,
 	CTX: v4,
-	VIndex:int,
-	IIndex:int, 
+
 }
 
 assets :: struct
