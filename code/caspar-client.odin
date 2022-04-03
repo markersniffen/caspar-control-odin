@@ -16,6 +16,7 @@ main :: proc() {
 		return
 	}
 
+	// GL 
 	window := glfw.CreateWindow(WIDTH, HEIGHT, TITLE, nil, nil)
 
 	defer glfw.Terminate()
@@ -31,14 +32,13 @@ main :: proc() {
 	glfw.SetKeyCallback(window, cast(glfw.KeyProc)keyboard_callback)
 	glfw.SetMouseButtonCallback(window, cast(glfw.MouseButtonProc)mouse_callback)
 	
-
 	//- NOTE INITIALIZE PROJECT 
 	Show := new(show)
 	defer free(Show)
 	glfw.SetWindowUserPointer(window, Show)
 	Show.State.glState.Window = window
+	//- NOTE all init functions
 	ShowInit(Show)
-
 
 	for !glfw.WindowShouldClose(window)
 	{
@@ -54,6 +54,7 @@ main :: proc() {
 		Show.State.MousePos.y = -mY + Show.State.WindowRes.y
 		Show.State.DeltaMouse = Show.State.MousePos - OldMouse
 
+		// NOTE all render functions
 		ShowUpdateAndRender(Show)
 	}
 }

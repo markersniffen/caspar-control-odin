@@ -17,7 +17,9 @@ ShowUpdateAndRender :: proc(Show: ^show)
 	Show.State.VIndex = 0
 	Show.State.IIndex = 0
 
+	// NOTE update UI
 	UIUpdate(Show)
+	// NOTE update OpenGL
 	OpenglRender(Show)
 
 	// NOTE reset all the keys
