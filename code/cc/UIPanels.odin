@@ -4,17 +4,17 @@ import "core:fmt"
 
 PlaylistPanel :: proc(Show: ^show, UID: uid)
 {
-	if Value := UIButtonX(Show, {"My Button", "x x x x x", "Another Button"}); Value != "" do fmt.println("Clicked button!")
+	if Value := UIButtonX(Show, {"Uno", "Dos", "Tres"}); Value != "" do fmt.println("Clicked button!")
 }
 
 
 PropertiesPanel :: proc(Show: ^show, UID: uid)
 {
-	if Value := UIButtonX(Show, {"My Button", "My OTHER Button"}); Value != "" do fmt.println("Clicked button!")
+	if Value := UIButtonX(Show, {"Left panel", "Right Panel"}); Value != "" do fmt.println("Clicked button!")
 }
 
 
 LibraryPanel :: proc(Show: ^show, UID: uid)
 {
-	if Value := UIButtonX(Show, {"My Button"}); Value != "" do fmt.println("Clicked button!")
+	if Value := UIButtonX(Show, {"Center Panel All Alone!"}); Value != "" do fmt.println("Clicked button!")
 }
