@@ -5,9 +5,10 @@ import "core:fmt"
 ShowInit :: proc(Show: ^show)
 {
 	OpenglInit(Show)
-	ImportFont(Show, 50, "fonts/Roboto-Regular.ttf")
+	ImportFont(Show, 20, "fonts/SourceSansPro-Bold.ttf")
 	OpenglGenerateUIFont(Show)
 	free(Show.Assets.Font)
+	TTInit(Show)
 	UIInit(Show)
 }
 
@@ -17,9 +18,7 @@ ShowUpdateAndRender :: proc(Show: ^show)
 	Show.State.glState.VIndex = 0
 	Show.State.glState.IIndex = 0
 
-	// NOTE update UI
 	UIUpdate(Show)
-	// NOTE update OpenGL
 	OpenglRender(Show)
 
 	// NOTE reset all the keys

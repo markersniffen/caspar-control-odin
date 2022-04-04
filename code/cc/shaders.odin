@@ -54,93 +54,57 @@ void main()
 	{
 		FragColor = vertex_color;
 	} else {
-		FragColor = mix(texture(tex, uv_coords), vertex_color, texture_mix);
+		FragColor = texture(tex, uv_coords);
+		// FragColor = mix(texture(tex, uv_coords), vertex_color, texture_mix);
 	}
 }
 `
 
 
 
-//- NOTE UI SHADER 
-UI_VS ::
-`
-#version 330 core
-layout(location = 0) in vec2 vertex_position;
-layout(location = 1) in vec3 color;
-layout(location = 2) in vec2 uv_coords;
-out vec4 vertexColor;
-out vec2 UV;
 
-void main()
-{
-	gl_Position = vec4(vertex_position, 0.0, 1.0);
-	UV = uv_coords;
-	vertexColor = vec4(color, 1);
-}
-`
 
-UI_FRAG ::
-`
-#version 330 core
-in vec4 vertexColor;
-in vec2 UV;
-//in float Color;
 
-out vec4 FragColor;
-uniform sampler2D myTex;
 
-void main()
-{
-	float v = texture(myTex, UV)[0];
-	if (UV == vec2(-1,-1))
-	{
-		FragColor = vertexColor;
-	} else {
-		FragColor = vec4(vertexColor[0],vertexColor[1],vertexColor[2],v);
-	}
-}
-`
 
 //- NOTE FONT SHADER 
 FONT_VS ::
 `
 #version 330 core
-
-layout(location = 0) in vec3 vertex_position;
-
-out vec4 vertexColor;
-out float alpha;
-
-uniform vec2 Adv;
-uniform mat4 Aspect;
-uniform mat4 Transform;
-uniform float Alpha;
+layout(location = 0) in vec3 vtx;
 
 uniform vec4 color;
+uniform mat4 scale;
+uniform vec2 transform;
+out vec4 vertexColor;
 
 void main()
 {
-	vec3 Adv2 = vec3(Adv, 0);
-	gl_Position = vec4(vertex_position + Adv2, 1.0) * Aspect * Transform;
+	vec4 Scaled = vec4(vtx, 1) * scale;
+	vec2 Normalized = (Scaled.xy * 2) - 1;
+	vec2 Trans = Normalized.xy + (transform);
+	gl_Position.xy = Trans;   //vec4(vtx + vec3(transform, 0), 1) * scale;
+    gl_Position.z = 0;
+    gl_Position.w = 1;
     vertexColor = color;
-	alpha = Alpha;
 }
 `
-
 FONT_FRAG ::
 `
 #version 330 core
-
 in vec4 vertexColor;
-in float alpha;
-
 out vec4 FragColor;
 
 void main()
 {
-	FragColor = vertexColor * vec4(1,1,1,alpha);;
+	FragColor = vertexColor.aaaa;
 }
 `
+
+
+
+
+
 
 //- NOTE TEXTURE SHADER 
 TEXTURE_VS ::

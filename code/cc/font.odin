@@ -12,7 +12,7 @@ import ttm "../external/ttf2mesh/"
 
 NUM_GLYPHS :: 95;
 GLYPH_OFFSET :: 32;
-GLYPH_RES :: 50;
+GLYPH_RES :: 2;
 
 UI_FONT_TEXTURE_RES :: 2560
 
