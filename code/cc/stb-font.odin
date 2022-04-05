@@ -6,7 +6,7 @@ import "core:mem"
 import stb "vendor:stb/truetype"
 import gl "vendor:OpenGL"
 
-TTInit :: proc(Show: ^show)
+STBFontInit :: proc(Show: ^show)
 {
 	using stb, mem, fmt
 
@@ -25,8 +25,7 @@ TTInit :: proc(Show: ^show)
   	// can free temp_bitmap at this point
   	free(Image)
   	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  }
-
+}
 
 PushText :: proc(Show: ^show, Q: v4, UV: [4]f32, Color: v4, Border: f32)
 {
@@ -75,6 +74,5 @@ PushText :: proc(Show: ^show, Q: v4, UV: [4]f32, Color: v4, Border: f32)
 		copy(Show.State.glState.Indices[Show.State.glState.IIndex:Show.State.glState.IIndex+6], I[:]);
 		Show.State.glState.IIndex += 6;
 		Show.State.glState.QuadIndex += 1;
-		
 	}
 }

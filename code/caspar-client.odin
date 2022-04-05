@@ -1,4 +1,5 @@
 package casparclient
+
 import "/cc"
 import "vendor:glfw"
 import "core:fmt"
@@ -16,9 +17,7 @@ main :: proc() {
 		return
 	}
 
-	// GL 
 	window := glfw.CreateWindow(WIDTH, HEIGHT, TITLE, nil, nil)
-
 	defer glfw.Terminate()
 	defer glfw.DestroyWindow(window)
 
@@ -31,13 +30,14 @@ main :: proc() {
 	glfw.MakeContextCurrent(window)
 	glfw.SetKeyCallback(window, cast(glfw.KeyProc)keyboard_callback)
 	glfw.SetMouseButtonCallback(window, cast(glfw.MouseButtonProc)mouse_callback)
+	glfw.SetScrollCallback(window, cast(glfw.ScrollProc)scroll_callback)
+	glfw.SetCharCallback(window, cast(glfw.CharProc)typing_callback)
 	
-	//- NOTE INITIALIZE PROJECT 
+	//- NOTE Initialize Show
 	Show := new(show)
 	defer free(Show)
 	glfw.SetWindowUserPointer(window, Show)
 	Show.State.glState.Window = window
-	//- NOTE all init functions
 	ShowInit(Show)
 
 	for !glfw.WindowShouldClose(window)
@@ -56,6 +56,7 @@ main :: proc() {
 
 		// NOTE all render functions
 		ShowUpdateAndRender(Show)
+		Show.State.MouseScroll = 0
 	}
 }
 
@@ -93,7 +94,6 @@ keyboard_callback :: proc(window: glfw.WindowHandle, key: int, scancode: int, ac
 {
 	using cc, fmt
 	Show := cast(^show)glfw.GetWindowUserPointer(window)
-	
 	
 	switch key
 	{
@@ -140,9 +140,7 @@ keyboard_callback :: proc(window: glfw.WindowHandle, key: int, scancode: int, ac
 		process_keyboard_input(action, &Show.State.KeyState[keys.SHIFT], false)
 		case glfw.KEY_RIGHT_SHIFT:
 		process_keyboard_input(action, &Show.State.KeyState[keys.SHIFT], false)
-		
 	}
-	
 }
 
 mouse_callback :: proc(window: glfw.WindowHandle, button: int, action: int, mods: int)
@@ -166,7 +164,6 @@ mouse_callback :: proc(window: glfw.WindowHandle, button: int, action: int, mods
 		if action == int(glfw.PRESS) do Show.State.MouseRight = .CLICK
 		if action == int(glfw.RELEASE) do Show.State.MouseRight = .UP
 	}
-	
 }
 
 scroll_callback :: proc(window: glfw.WindowHandle, x: f64, y: f64)
@@ -174,4 +171,14 @@ scroll_callback :: proc(window: glfw.WindowHandle, x: f64, y: f64)
 	using cc
 	Show := cast(^show)glfw.GetWindowUserPointer(window)
 	Show.State.MouseScroll = y/10
+}
+
+typing_callback :: proc(window: glfw.WindowHandle, codepoint: u32)
+{
+	using cc
+	Show := cast(^show)glfw.GetWindowUserPointer(window);
+	if Show.State.Mode == .TYPING
+	{
+		Show.State.UILastChar = rune(codepoint);
+	}
 }
