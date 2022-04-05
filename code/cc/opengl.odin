@@ -9,7 +9,6 @@ import "core:image/png"
 import "core:image"
 import "core:math"
 
-
 GL_MINOR_VERSION :: 3
 GL_MAJOR_VERSION :: 3
 
@@ -43,7 +42,6 @@ opengl_state :: struct
 	FontTexture: u32,
 	STBTexture: u32,
 	STBCharData: []stb.bakedchar,
-
 }
 
 OpenglInit :: proc(Show: ^show)
@@ -82,7 +80,6 @@ OpenglInit :: proc(Show: ^show)
 	
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-	// gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
@@ -91,8 +88,7 @@ OpenglInit :: proc(Show: ^show)
 	// -------------------------------------------------------------------------------- //
 
 
-	// --  FONT  ---------------------------------------------------------------------- //
-	// NOTE configure font framebuffer
+	// -- NOTE LEGACY FONT  ---------------------------------------------------------------------- //
 	gl.GenFramebuffers(1, &glState.FontFramebuffer);
 	gl.BindFramebuffer(gl.FRAMEBUFFER, glState.FontFramebuffer);
 
@@ -126,27 +122,20 @@ OpenglInit :: proc(Show: ^show)
 
 OpenglRender :: proc(Show: ^show)
 {
-	// good
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0);
 	gl.Viewport(0, 0, i32(Show.State.WindowRes.x), i32(Show.State.WindowRes.y));
-	gl.ClearColor(0, 1, 0, 1)
+	gl.ClearColor(0, 0, 0, 1)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 
-	OpenglRectTest(Show)
-	// PushQuad(Show, {0,0,250,250}, {0,0,1,1}, {1,1,0,0}, 0)
-	// PushQuad(Show, {250,0,1250,1000}, {0,0,1,1}, {1,1,0,0}, 0)
-	
 	OpenglRenderUI(Show)
-	// TTDraw(Show)
-	// TTTestRect(Show)
-	// OpenglRenderGeneratedUIFont(Show)
 	glfw.SwapBuffers(Show.State.glState.Window)
 }
 
 OpenglRenderUI :: proc(Show: ^show)
 {
+
 	gl.UseProgram(Show.State.glState.ui_shader)
-	gl.BindTexture(gl.TEXTURE_2D, Show.State.glState.FontTexture)
+	gl.BindTexture(gl.TEXTURE_2D, Show.State.glState.STBTexture)
 
 	Vertices:= 	Show.State.glState.Vertices
 	Indices:=	Show.State.glState.Indices
@@ -245,10 +234,13 @@ PushQuad :: proc(Show: ^show, Q: v4, UV: [4]f32, Color: v4, Border: f32)
 		{
 			/// {1, 1, 0, 0}
 			l := (Quad[0] - W) / W;
-			b := (Quad[1] - H) / H;
+			t := (Quad[1] - H) / H;
 			r := (Quad[2] - W) / W;
-			t := (Quad[3] - H) / H;
-			
+			b := (Quad[3] - H) / H;
+
+			t = t * -1
+			b = b * -1
+
 			V :[40]f32 = { 
 				l,b,0,	uvl,uvb,	c1,c2,c3,c4,	m,
 				l,t,0,	uvl,uvt,	c1,c2,c3,c4,	m,
@@ -266,11 +258,15 @@ PushQuad :: proc(Show: ^show, Q: v4, UV: [4]f32, Color: v4, Border: f32)
 		}
 		else
 		{
+			// TODO NEED OT FIX THIS
 			L := (Quad[0] - W) / W;
-			B := (Quad[1] - H) / H;
+			T := (Quad[1] - H) / H;
 			R := (Quad[2] - W) / W;
-			T := (Quad[3] - H) / H;
-			
+			B := (Quad[3] - H) / H;
+
+			T = T * -1
+			B = B * -1
+
 			TX:= Border / W;
 			TY:= Border / H;
 			

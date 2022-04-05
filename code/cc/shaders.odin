@@ -1,18 +1,5 @@
 package cc
 
-// types of shaders?
-//- UI shader?
-//  - render from one vertex/index buffer
-//  - includes [x,y,z,  u,v,  r,g,b,a ]
-//  - send 
-//  - 
-//  - 
-//  - 
-
-
-//- font shader
-
-
 UIMAIN_VS ::
 `
 #version 330 core
@@ -54,8 +41,8 @@ void main()
 	{
 		FragColor = vertex_color;
 	} else {
-		FragColor = texture(tex, uv_coords);
-		// FragColor = mix(texture(tex, uv_coords), vertex_color, texture_mix);
+		vec4 texs = texture(tex, uv_coords);
+		FragColor = vec4(vertex_color.rgb, texs.a);
 	}
 }
 `

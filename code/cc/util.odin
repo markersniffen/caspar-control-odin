@@ -14,15 +14,22 @@ QuadTo32 :: proc(Value: [4]f64) -> [4]f32
 	return Result
 }
 
+QuadTo64 :: proc(Value: [4]f32) -> [4]f64
+{
+	Result: [4]f64
+	for V, i in Value do Result[i] = f64(V)
+	return Result
+}
+
 // NOTE       Point in Pos      Quad
-IsInsideBounds :: proc(Pos: v2, A: v4) -> bool
+IsInsideBounds :: proc(Pt: v2, Quad: v4) -> bool
 {
 	Result := false;
-	L := A[0];
-	B := A[1];
-	R := A[2];
-	T := A[3];
-	if Pos.x > L && Pos.y > B && Pos.x < R && Pos.y < T do Result = true;
+	L := Quad[0];
+	T := Quad[1];
+	R := Quad[2];
+	B := Quad[3];
+	if Pt.x > L && Pt.y > T && Pt.x < R && Pt.y < B do Result = true;
 	return Result;
 }
 

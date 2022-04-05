@@ -5,7 +5,7 @@ import "core:fmt"
 
 WIDTH  	:: 1280
 HEIGHT 	:: 720
-TITLE 	:: "Caspar Client"
+TITLE 	:: "CasparCG Client | Odin"
 
 main :: proc() {
 	using cc
@@ -51,7 +51,7 @@ main :: proc() {
 		mX, mY := glfw.GetCursorPos(window)
 		OldMouse := Show.State.MousePos
 		Show.State.MousePos.x = mX
-		Show.State.MousePos.y = -mY + Show.State.WindowRes.y
+		Show.State.MousePos.y = mY
 		Show.State.DeltaMouse = Show.State.MousePos - OldMouse
 
 		// NOTE all render functions

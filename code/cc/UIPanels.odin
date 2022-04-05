@@ -2,6 +2,15 @@ package cc
 
 import "core:fmt"
 
+DebugPanel :: proc(Show: ^show, UID: uid)
+{
+	
+	UIText(Show, "Active panel:", Show.State.UIPanelHot)
+	UIText(Show, "# of Panels:", len(Show.State.UIPanels))
+	UIText(Show, "# of Quads in UI", Show.State.glState.QuadIndex)
+	UIText(Show, "Mouse Pos:", Show.State.MousePos)
+}
+
 PlaylistPanel :: proc(Show: ^show, UID: uid)
 {
 	if Value := UIButtonX(Show, {"Uno", "Dos", "Tres"}); Value != "" do fmt.println("Clicked button!")

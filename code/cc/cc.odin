@@ -5,10 +5,10 @@ import "core:fmt"
 ShowInit :: proc(Show: ^show)
 {
 	OpenglInit(Show)
-	ImportFont(Show, 20, "fonts/SourceSansPro-Bold.ttf")
-	OpenglGenerateUIFont(Show)
-	free(Show.Assets.Font)
 	TTInit(Show)
+	// ImportFont(Show, 20, "fonts/SourceSansPro-Bold.ttf")
+	// OpenglGenerateUIFont(Show)
+	// free(Show.Assets.Font)
 	UIInit(Show)
 }
 
@@ -62,11 +62,10 @@ state :: struct
 
 	// UI
 	UIFontOffset: [NUM_GLYPHS][2]f32,
-	// UIPanelPool: pool,
-	// UIPanelMain: uid,
 	glState: opengl_state,
-	UILastChar: rune,
-	UICharIndex: int,
+	// UILastChar: rune,
+	// UICharIndex: int,
+
 	UIPanelHot: uid,
 	UIIndex: int,
 	UIPanelCTX: v4,
