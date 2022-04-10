@@ -34,11 +34,11 @@ main :: proc() {
 	glfw.SetCharCallback(window, cast(glfw.CharProc)typing_callback)
 	
 	//- NOTE Initialize Show
-	Show := new(show)
+	Show = new(show)
 	defer free(Show)
 	glfw.SetWindowUserPointer(window, Show)
 	Show.State.glState.Window = window
-	ShowInit(Show)
+	ShowInit()
 
 	for !glfw.WindowShouldClose(window)
 	{
@@ -55,7 +55,7 @@ main :: proc() {
 		Show.State.DeltaMouse = Show.State.MousePos - OldMouse
 
 		// NOTE all render functions
-		ShowUpdateAndRender(Show)
+		ShowUpdateAndRender()
 		Show.State.MouseScroll = 0
 	}
 }
@@ -93,7 +93,6 @@ process_keyboard_input :: proc(Action: int, State: ^cc.key_state, CanToggle: boo
 keyboard_callback :: proc(window: glfw.WindowHandle, key: int, scancode: int, action: int, mods: int)
 {
 	using cc, fmt
-	Show := cast(^show)glfw.GetWindowUserPointer(window)
 	
 	switch key
 	{
@@ -146,7 +145,6 @@ keyboard_callback :: proc(window: glfw.WindowHandle, key: int, scancode: int, ac
 mouse_callback :: proc(window: glfw.WindowHandle, button: int, action: int, mods: int)
 {
 	using cc
-	Show := cast(^show)glfw.GetWindowUserPointer(window)
 	if button == int(glfw.MOUSE_BUTTON_LEFT)
 	{
 		if action == int(glfw.PRESS) do Show.State.Mouse = .CLICK
@@ -169,14 +167,12 @@ mouse_callback :: proc(window: glfw.WindowHandle, button: int, action: int, mods
 scroll_callback :: proc(window: glfw.WindowHandle, x: f64, y: f64)
 {
 	using cc
-	Show := cast(^show)glfw.GetWindowUserPointer(window)
 	Show.State.MouseScroll = y/10
 }
 
 typing_callback :: proc(window: glfw.WindowHandle, codepoint: u32)
 {
 	using cc
-	Show := cast(^show)glfw.GetWindowUserPointer(window);
 	if Show.State.Mode == .TYPING
 	{
 		Show.State.UILastChar = rune(codepoint);

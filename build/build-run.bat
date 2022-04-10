@@ -1,1 +1,1 @@
-odin run ../code/caspar-client.odin -debug
+odin run ../code/. -debug

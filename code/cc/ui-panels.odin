@@ -13,7 +13,7 @@ ui_panel 		:: struct
 	Direction: ui_direction,
 }
 
-UIPanel 	:: proc(Show: ^show, PUID: uid)
+UIPanel 	:: proc(PUID: uid)
 {
 	Panel, Pok:= Show.State.UIPanels[PUID]
 	if Pok
@@ -21,7 +21,7 @@ UIPanel 	:: proc(Show: ^show, PUID: uid)
 		Quad := Panel.CTX
 		if Panel.Direction == .X do Quad[2] = Quad[0] + 2
 		if Panel.Direction == .Y do Quad[3] = Quad[1] + 2
-		PushQuad(Show, Quad, {0,0,0,0}, RED, 0)
+		PushQuad(Quad, {0,0,0,0}, RED, 0)
 		
 		// INPUT
 
@@ -45,7 +45,7 @@ UIPanel 	:: proc(Show: ^show, PUID: uid)
 				switch Show.State.UILastChar
 				{
 					case 'x':
-						UIDeletePanel(Show, Show.State.UIPanelHot)
+						UIDeletePanel(Show.State.UIPanelHot)
 				}
 
 
@@ -61,13 +61,13 @@ UIPanel 	:: proc(Show: ^show, PUID: uid)
 			if Show.State.KeyState[keys.N_PLUS].Active
 			{
 				fmt.println("PLUS")
-				UICreatePanel(Show, PUID, .Y, 0.5, 0)
+				UICreatePanel(PUID, .Y, 0.5, 0)
 				Show.State.KeyState[keys.N_PLUS].Active = false
 			}
 
 			if Show.State.KeyState[keys.N_MINUS].Active
 			{
-				UICreatePanel(Show, PUID, .X, 0.5, 0)
+				UICreatePanel(PUID, .X, 0.5, 0)
 				Show.State.KeyState[keys.N_MINUS].Active = false
 			}
 
@@ -83,45 +83,48 @@ UIPanel 	:: proc(Show: ^show, PUID: uid)
 				if Ok
 				{
 					Parent.Size += (Show.State.MouseScroll/10)
-					fmt.println(Show.State.MouseScroll)
 				}
 			}
-			PushQuad(Show, Panel.CTX, {0,0,0,0}, BLUE, 2)
+			PushQuad(Panel.CTX, {0,0,0,0}, BLUE, 2)
 		}
 
 		Show.State.CTX = {Panel.CTX[0] + UI_MARGIN, Panel.CTX[1] + UI_MARGIN, Panel.CTX[2] - UI_MARGIN, Panel.CTX[1] + UI_MARGIN + UI_HEIGHT }
 
-		if Panel.Type == 0 do DebugPanel(Show, PUID)
-		if Panel.Type == 1 do InstructionsPanel(Show, PUID)
-		if Panel.Type == 2 do PropertiesPanel(Show, PUID)
-		if Panel.Type == 3 do LibraryPanel(Show, PUID)	
+		if Panel.Type == 0 do DebugPanel(PUID)
+		if Panel.Type == 1 do InstructionsPanel(PUID)
+		if Panel.Type == 2 do PropertiesPanel(PUID)
+		if Panel.Type == 3 do LibraryPanel(PUID)	
 	}
 }
 
-DebugPanel :: proc(Show: ^show, UID: uid)
+DebugPanel :: proc(UID: uid)
 {
-	UIText(Show, "Active panel:", Show.State.UIPanelHot)
-	UIText(Show, "# of Panels:", len(Show.State.UIPanels))
-	UIText(Show, "# of Quads in UI", Show.State.glState.QuadIndex)
-	UIText(Show, "Mouse Pos:", Show.State.MousePos)
+	UIText("Active panel:", Show.State.UIPanelHot)
+	UIText("# of Panels:", len(Show.State.UIPanels))
+	UIText("# of Quads in UI", Show.Debug.UIQuads)
+	UIText("Mouse Pos:", Show.State.MousePos)
 }
 
-InstructionsPanel :: proc(Show: ^show, UID: uid)
+InstructionsPanel :: proc(UID: uid)
 {
-	UIText(Show, "Instructions", "")
-	UIBar(Show)
-	UIText(Show, "", "Press \"Tab\" to change panel type.")
-	UIText(Show, "", "Press \"Numpad +/-\" to add panel.")
-	UIText(Show, "", "Press \"x\" delete panel.")
-	UIText(Show, "", "Use scrollwheel to adjust panel size")
+	UIText("Instructions", "")
+	UIBar()
+	UIText("", "Press \"Tab\" to change panel type.")
+	UIText("", "Press \"Numpad +/-\" to add panel.")
+	UIText("", "Press \"x\" delete panel.")
+	UIText("", "Use scrollwheel to adjust panel size")
 }
 
-PropertiesPanel :: proc(Show: ^show, UID: uid)
+PropertiesPanel :: proc(UID: uid)
 {
-	if Value := UIButtonX(Show, {"Left panel", "Right Panel"}); Value != "" do fmt.println("Clicked button!")
+	if UIDropDown("Main DropDown")
+	{
+		for P in Show.State.UIPanels do UIText("Panel:", P)
+	}
+
 }
 
-LibraryPanel :: proc(Show: ^show, UID: uid)
+LibraryPanel :: proc(UID: uid)
 {
-	if Value := UIButtonX(Show, {"Center Panel All Alone!"}); Value != "" do fmt.println("Clicked button!")
+	if Value := UIButtonX({"Center Panel All Alone!"}); Value != "" do fmt.println("Clicked button!")
 }

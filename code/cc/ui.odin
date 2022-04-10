@@ -1,13 +1,14 @@
 package cc
 
 import "core:fmt"
+import "core:strconv"
 import stb "vendor:stb/truetype"
 
 MAX_UI_ELEMENTS :: 4096
-UI_MARGIN :: 6
+UI_MARGIN :: 2
 UI_HALF_MARGIN :: UI_MARGIN / 2
 UI_HEIGHT :: 20
-UI_TEXT_HEIGHT :: 20
+UI_TEXT_HEIGHT :: 16
 UI_TAB    :: 120
 UI_TEXT_OFFSET :: 2
 UI_TEXT_TAB :: 4
@@ -24,25 +25,27 @@ BG_BAR	:: v4	{0.2,	0.2,	0.2,	1.0}
 BORDER	:: v4	{0.1,	0.3,	0.6,	1.0}
 BUTTON 	:: v4	{0.2,	0.3,	1.0,	1.0}
 HOVER 	:: v4	{0.3,	0.5,	1.0,	1.0}
+HOT		:: v4	{1.0,	0.4,	0.1,	1.0}
+ACTIVE	:: v4	{1.0,	1.0,	0.1,	1.0}
 
-UIInit			:: proc(Show: ^show)
+UIInit			:: proc()
 {
-	Master, _ := UICreatePanel(Show, 0, .X, 1, 0)
-	NewMaster, Panel2 := UICreatePanel(Show, Master, .X, 0.75, 1)
-	UICreatePanel(Show, NewMaster, .Y, 0.3, 2)
+	Master, _ := UICreatePanel(0, .X, 1, 0)
+	NewMaster, Panel2 := UICreatePanel(Master, .X, 0.75, 1)
+	UICreatePanel(NewMaster, .Y, 0.3, 2)
 }
 
-UIUpdate		:: proc(Show: ^show)
+UIUpdate		:: proc()
 {
 	Show.State.UIPanelCTX = {0,0,Show.State.WindowRes.x, Show.State.WindowRes.y}
-	UIRenderPanel(Show, Show.State.UIMasterPanelUID)
+	UIRenderPanel(Show.State.UIMasterPanelUID)
 }
 
-UICreatePanel	:: proc(Show: ^show, PUID: uid, Direction: ui_direction, Size: f64, Type: int) -> (uid, uid)
+UICreatePanel	:: proc(PUID: uid, Direction: ui_direction, Size: f64, Type: int) -> (uid, uid)
 {
 	if PUID == 0 // the first panel created
 	{
-		Show.State.UIMasterPanelUID = GetNewUID(Show)
+		Show.State.UIMasterPanelUID = GetNewUID()
 		Show.State.UIPanels[Show.State.UIMasterPanelUID] = new(ui_panel)
 		Show.State.UIPanels[Show.State.UIMasterPanelUID].Parent = PUID
 		Show.State.UIPanels[Show.State.UIMasterPanelUID].Direction = Direction
@@ -55,8 +58,8 @@ UICreatePanel	:: proc(Show: ^show, PUID: uid, Direction: ui_direction, Size: f64
 		Parent, Ok := Show.State.UIPanels[PUID]
 		if Ok
 		{
-			UID1 := GetNewUID(Show)
-			UID2 := GetNewUID(Show)
+			UID1 := GetNewUID()
+			UID2 := GetNewUID()
 			Parent.Children[0] = UID1
 			Parent.Children[1] = UID2
 			Parent.Size = Size
@@ -83,7 +86,7 @@ UICreatePanel	:: proc(Show: ^show, PUID: uid, Direction: ui_direction, Size: f64
 	}
 }
 
-UIDeletePanel	:: proc(Show: ^show, UID:uid)
+UIDeletePanel	:: proc(UID:uid)
 {
 	Panel, Ok := Show.State.UIPanels[UID]
 	if Ok
@@ -92,6 +95,7 @@ UIDeletePanel	:: proc(Show: ^show, UID:uid)
 		if Pok
 		{
 			Grandpa, Gok := Show.State.UIPanels[Parent.Parent]
+			if Gok
 			{
 				SUID: uid
 				if Parent.Children[0] == UID
@@ -111,12 +115,18 @@ UIDeletePanel	:: proc(Show: ^show, UID:uid)
 					delete_key(&Show.State.UIPanels, Parent.UID)
 					delete_key(&Show.State.UIPanels, UID)
 				}
+			} else {
+				fmt.println("failed to find grandparent of", Panel)
 			}
+		} else {
+			fmt.println("failed to find Parent of", Panel)
 		}
+	} else {
+		fmt.println("failed to find panel:", Panel)
 	}
 }
 
-UIRenderPanel	:: proc(Show: ^show, UID: uid)
+UIRenderPanel	:: proc(UID: uid)
 {
 	P, Ok := Show.State.UIPanels[UID]
 	if Ok
@@ -149,32 +159,32 @@ UIRenderPanel	:: proc(Show: ^show, UID: uid)
 				CTXb	= { L,B,R,P.CTX[3]}
 			}
 			Show.State.UIPanelCTX = CTXa
-			UIRenderPanel(Show, P.Children[0])
+			UIRenderPanel(P.Children[0])
 			Show.State.UIPanelCTX = CTXb
-			UIRenderPanel(Show, P.Children[1])
+			UIRenderPanel(P.Children[1])
 		} else {
-			UIPanel(Show, UID)
+			UIPanel(UID)
 		}
 	}
 }
 
-UIIterate		:: proc(Show: ^show)	do Show.State.UIIndex += 1
+UIIterate		:: proc()	do Show.State.UIIndex += 1
 
-UIAdvanceCTX	:: proc(Show: ^show)	do Show.State.CTX = { Show.State.CTX[0], Show.State.CTX[3] + UI_MARGIN, Show.State.CTX[2], Show.State.CTX[3] + UI_MARGIN + UI_HEIGHT }
+UIAdvanceCTX	:: proc(Height :f64= UI_HEIGHT)	do Show.State.CTX = { Show.State.CTX[0], Show.State.CTX[3] + UI_MARGIN, Show.State.CTX[2], Show.State.CTX[3] + UI_MARGIN + Height }
 
-UIBar :: proc(Show: ^show)
+UIBar :: proc()
 {
-	UIIterate(Show);
-	 Show.State.CTX[3] = Show.State.CTX[1] + 2;
-	PushQuad(Show, Show.State.CTX, {0,0,0,0}, BORDER, 0);
-	UIAdvanceCTX(Show);
+	UIIterate();
+	Show.State.CTX[3] = Show.State.CTX[1] + 2;
+	PushQuad(Show.State.CTX, {0,0,0,0}, BORDER, 0);
+	UIAdvanceCTX();
 }
 
-UIButtonRaw 	:: proc(Show: ^show, Name: string, Quad: v4, Just: ui_justification) -> bool
+UIButtonRaw 	:: proc(Name: string, Quad: v4, Just: ui_justification) -> bool
 {
 	Result := false
 	Hovering := false
-	UIIterate(Show)
+	UIIterate()
 	Color := BUTTON
 	
 	if IsInsideBounds(Show.State.MousePos, Quad)
@@ -187,15 +197,15 @@ UIButtonRaw 	:: proc(Show: ^show, Name: string, Quad: v4, Just: ui_justification
 			Show.State.Mouse = .UP;
 		}
 	}
-	PushQuad(Show, Quad, {0,0,0,0}, Color, 0);
+	PushQuad(Quad, {0,0,0,0}, Color, 0);
 
-	UIDrawText(Show, Name, Quad, Just, false);
+	UIDrawText(Name, Quad, Just, false);
 	
-	if Hovering do PushQuad(Show, Quad, {0,0,0,0}, BUTTON, 2);
+	if Hovering do PushQuad(Quad, {0,0,0,0}, BUTTON, 2);
 	return Result;
 }
 
-UIButtonX 		:: proc(Show: ^show, Names: []string) -> string
+UIButtonX 		:: proc(Names: []string) -> string
 {
 	Result := "";
 	Old := Show.State.CTX;
@@ -206,31 +216,31 @@ UIButtonX 		:: proc(Show: ^show, Names: []string) -> string
 	
 	for N in Names
 	{
-		if UIButtonRaw(Show, N, Show.State.CTX, .CENTER) do Result = N;
+		if UIButtonRaw(N, Show.State.CTX, .CENTER) do Result = N;
 		Show.State.CTX[0] += Width + UI_MARGIN;
 		Show.State.CTX[2] = Show.State.CTX[0] + Width;
 	}
 	
 	Show.State.CTX = Old;
-	UIAdvanceCTX(Show);
+	UIAdvanceCTX();
 	return Result;
 }
 
-UIText 			:: proc(Show: ^show, Label: string, Value: any)
+UIText 			:: proc(Label: string, Value: any)
 {
 	Text :string = fmt.tprint(Label, Value)
-	UIIterate(Show);
-	PushQuad(Show, Show.State.CTX, {0,0,0,0}, BG_BAR, 0)
-	UIDrawText(Show, Text, Show.State.CTX, .LEFT, false)
-	UIAdvanceCTX(Show)
+	UIIterate();
+	PushQuad(Show.State.CTX, {0,0,0,0}, BG_BAR, 0)
+	UIDrawText(Text, Show.State.CTX, .LEFT, false)
+	UIAdvanceCTX()
 }
 
-UIDrawText 		:: proc(Show: ^show, Text: string, Quad: v4, Justified: ui_justification, Editing: bool)
+UIDrawText 		:: proc(Text: string, Quad: v4, Justified: ui_justification, Editing: bool)
 {
 	using stb, fmt
 
-	x:f32= f32(Quad[0])
-	y:f32= f32(Quad[3] - UI_HALF_MARGIN - 1)
+	x:f32= f32(Quad[0] + 2)
+	y:f32= f32(Quad[3] - 5)
 	q: aligned_quad
 
 	QuadWidth: f32
@@ -250,14 +260,36 @@ UIDrawText 		:: proc(Show: ^show, Text: string, Quad: v4, Justified: ui_justific
 			LastPlace = q.x1
 		}
 		x = f32(Quad[0])
-		y = f32(Quad[3] - UI_HALF_MARGIN - 1)
+		y = f32(Quad[3] - 5)
 	}
 
 	for Letter in Text
 	{
 		GetBakedQuad(raw_data(Show.State.glState.STBCharData), 512, 512, i32(Letter) - 32, &x, &y, &q, true)
-		PushText(Show, QuadTo64({q.x0 - HalfWidth + QuadWidth, q.y0, q.x1 - HalfWidth + QuadWidth, q.y1}), {q.s0, q.t1, q.s1, q.t0}, WHITE, 0)
+		PushText(QuadTo64({q.x0 - HalfWidth + QuadWidth, q.y0, q.x1 - HalfWidth + QuadWidth, q.y1}), {q.s0, q.t1, q.s1, q.t0}, WHITE, 0)
 	}
+}
+
+
+//- NOTE SLIDER FLOAT 
+UISliderFloatRaw :: proc(Name: string, Value: ^f64, Min, Max, Mul: f64) -> bool
+{
+	Result := false
+
+
+
+	return(Result)
+}
+
+UIDropDown		:: proc(Name: string) -> bool
+{
+	Visible := Show.State.UIElementList[Name]
+	UIIterate()
+	if UIButtonRaw("Dropdown!", Show.State.CTX, .CENTER) do Visible = (Visible == true) ? false : true
+	UIAdvanceCTX()
+	Show.State.UIElementList[Name] = Visible
+
+	return(Visible)
 }
 
 ui_direction 	:: enum

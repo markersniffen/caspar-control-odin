@@ -31,11 +31,13 @@ opengl_state :: struct
 	
 	// textures
 	STBTexture: u32,
+	STBTextureBold: u32,
 	STBCharData: []stb.bakedchar,
+	STBCharDataBold: []stb.bakedchar,
 	Texture: u32,
 }
 
-OpenglInit :: proc(Show: ^show)
+OpenglInit :: proc()
 {
 	gl.load_up_to(GL_MAJOR_VERSION, GL_MINOR_VERSION, glfw.gl_set_proc_address)
 	gl.Enable(gl.BLEND)
@@ -71,22 +73,25 @@ OpenglInit :: proc(Show: ^show)
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, i32(img.width), i32(img.height), 0, gl.RGBA, gl.UNSIGNED_BYTE, raw_data(img.pixels.buf))
 }
 
-OpenglRender :: proc(Show: ^show)
+OpenglRender :: proc()
 {
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0);
 	gl.Viewport(0, 0, i32(Show.State.WindowRes.x), i32(Show.State.WindowRes.y));
 	gl.ClearColor(0, 0, 0, 1)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 
-	OpenglRenderUI(Show)
+	OpenglRenderUI()
+
 	glfw.SwapBuffers(Show.State.glState.Window)
+
+	Show.Debug.UIQuads = Show.State.glState.QuadIndex
 
 	Show.State.glState.QuadIndex = 0;
 	Show.State.glState.VIndex = 0
 	Show.State.glState.IIndex = 0
 }
 
-OpenglRenderUI :: proc(Show: ^show)
+OpenglRenderUI :: proc()
 {
 
 	gl.UseProgram(Show.State.glState.ui_shader)
@@ -113,7 +118,7 @@ OpenglRenderUI :: proc(Show: ^show)
 	gl.DrawElements(gl.TRIANGLES, i32(Show.State.glState.IIndex), gl.UNSIGNED_INT, nil);
 }
 
-PushQuad :: proc(Show: ^show, Q: v4, UV: [4]f32, Color: v4, Border: f32)
+PushQuad :: proc(Q: v4, UV: [4]f32, Color: v4, Border: f32)
 {
 	if Show.State.glState.QuadIndex < MAX_UI_ELEMENTS
 	{
@@ -209,7 +214,7 @@ PushQuad :: proc(Show: ^show, Q: v4, UV: [4]f32, Color: v4, Border: f32)
 	}
 }
 
-OpenglRectTest :: proc(Show: ^show)
+OpenglRectTest :: proc()
 {
 	gl.UseProgram(Show.State.glState.ui_shader);
 	gl.BindTexture(gl.TEXTURE_2D, Show.State.glState.STBTexture);

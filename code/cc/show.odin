@@ -2,9 +2,17 @@ package cc
 
 import "core:fmt"
 
+Show : ^show
+
 show :: struct
 {
 	State: state,
+	Debug: debug,
+}
+
+debug :: struct
+{
+	UIQuads: int,
 }
 
 state :: struct
@@ -34,6 +42,11 @@ state :: struct
 	CTX: v4,
 	UILastChar: rune,
 	// UICharIndex: int,
+
+	// ???
+	UIElementActive: int,
+	UIElementList: map[string]bool,
+	UIElementIterator: int, 
 }
 
 key_state :: struct
@@ -81,19 +94,19 @@ mode :: enum
 	EDITING,
 }
 
-ShowInit :: proc(Show: ^show)
+ShowInit :: proc()
 {
-	OpenglInit(Show)
-	STBFontInit(Show)
-	UIInit(Show)
+	OpenglInit()
+	STBFontInit()
+	UIInit()
 }
 
-ShowUpdateAndRender :: proc(Show: ^show)
+ShowUpdateAndRender :: proc()
 {
 
 
-	UIUpdate(Show)
-	OpenglRender(Show)
+	UIUpdate()
+	OpenglRender()
 
 	// NOTE reset all the keys
 	for k, i in Show.State.KeyState {

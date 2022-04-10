@@ -6,30 +6,42 @@ import "core:mem"
 import stb "vendor:stb/truetype"
 import gl "vendor:OpenGL"
 
-STBFontInit :: proc(Show: ^show)
+STBFontInit :: proc()
 {
 	using stb, mem, fmt
 
 	NUM_CHARS :: 96
-	Filedata, Ok := os.read_entire_file("fonts/Roboto-Bold.ttf")
-
+	
+	Filedata, Ok := os.read_entire_file("fonts/Roboto-Regular.ttf")
+	defer delete(Filedata)
 	Image:= alloc(512*512)
 	CharData, Cok:= make([]bakedchar, NUM_CHARS)
 	Show.State.glState.STBCharData = CharData
-
 	BakeFontBitmap(raw_data(Filedata), 0, UI_TEXT_HEIGHT, cast([^]u8)Image, 512, 512, 32, NUM_CHARS, raw_data(CharData))
 
-	gl.GenTextures(1, &Show.State.glState.STBTexture);
-	gl.BindTexture(gl.TEXTURE_2D, Show.State.glState.STBTexture);
-  	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, 512,512, 0, gl.ALPHA, gl.UNSIGNED_BYTE, Image);
-  	// can free temp_bitmap at this point
+	gl.GenTextures(1, &Show.State.glState.STBTexture)
+	gl.BindTexture(gl.TEXTURE_2D, Show.State.glState.STBTexture)
+  	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, 512,512, 0, gl.ALPHA, gl.UNSIGNED_BYTE, Image)
   	free(Image)
+  	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+					
+
+	BoldFiledata, BFOk := os.read_entire_file("fonts/Roboto-Bold.ttf")
+	defer delete(BoldFiledata)
+	ImageBold:= alloc(512*512)
+	CharDataBold, Bok:= make([]bakedchar, NUM_CHARS)
+	Show.State.glState.STBCharDataBold = CharDataBold
+	BakeFontBitmap(raw_data(BoldFiledata), 0, UI_TEXT_HEIGHT, cast([^]u8)ImageBold, 512, 512, 32, NUM_CHARS, raw_data(CharDataBold))
+
+	gl.GenTextures(1, &Show.State.glState.STBTextureBold)
+	gl.BindTexture(gl.TEXTURE_2D, Show.State.glState.STBTextureBold)
+  	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.ALPHA, 512,512, 0, gl.ALPHA, gl.UNSIGNED_BYTE, Image)
+  	free(ImageBold)
   	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 }
 
-PushText :: proc(Show: ^show, Q: v4, UV: [4]f32, Color: v4, Border: f32)
+PushText :: proc(Q: v4, UV: [4]f32, Color: v4, Border: f32)
 {
-
 	if Show.State.glState.QuadIndex < MAX_UI_ELEMENTS
 	{
 		W := f32(Show.State.WindowRes.x/2)
