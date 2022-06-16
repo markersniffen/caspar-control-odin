@@ -42,49 +42,56 @@ STBFontInit :: proc()
 
 PushText :: proc(Q: v4, UV: [4]f32, Color: v4, Border: f32)
 {
-	if Show.State.glState.QuadIndex < MAX_UI_ELEMENTS
+	if Show.State.glState.VIndex + 40 < len(Show.State.glState.Vertices)
 	{
-		W := f32(Show.State.WindowRes.x/2)
-		H := f32(Show.State.WindowRes.y/2)
-		C := f32(0.0)
-		u:f32 = 0
-		v:f32 = 1
-		uvl:f32 = UV[0]
-		uvb:f32 = UV[3]
-		uvr:f32 = UV[2]
-		uvt:f32 = UV[1]
-		
-		c1 := f32(Color[0])
-		c2 := f32(Color[1])
-		c3 := f32(Color[2])
-		c4 := f32(Color[3])
+		Quad64 := Q
+		if QuadIsInsideBounds(Quad64, Show.State.UIPanelCTX)
+		{
+			Quad := QuadTo32(Quad64)
 
-		m:f32 = 1
+			W := f32(Show.State.WindowRes.x/2)
+			H := f32(Show.State.WindowRes.y/2)
+			C := f32(0.0)
+			u:f32 = 0
+			v:f32 = 1
+			uvl:f32 = UV[0]
+			uvb:f32 = UV[3]
+			uvr:f32 = UV[2]
+			uvt:f32 = UV[1]
+			
+			c1 := f32(Color[0])
+			c2 := f32(Color[1])
+			c3 := f32(Color[2])
+			c4 := f32(Color[3])
 
-		Quad := QuadTo32(Q)
-		
-		/// {1, 1, 0, 0}
-		l := (Quad[0] - W) / W;
-		b := (Quad[1] - H) / H;
-		r := (Quad[2] - W) / W;
-		t := (Quad[3] - H) / H;
+			m:f32 = 1
 
-		t = t * -1
-		b = b * -1
+			/// {1, 1, 0, 0}
+			l := (Quad[0] - W) / W;
+			b := (Quad[1] - H) / H;
+			r := (Quad[2] - W) / W;
+			t := (Quad[3] - H) / H;
 
-		V :[40]f32 = { 
-			l,b,0,	uvl,uvb,	c1,c2,c3,c4,	m,
-			l,t,0,	uvl,uvt,	c1,c2,c3,c4,	m,
-			r,t,0,	uvr,uvt,	c1,c2,c3,c4,	m,
-			r,b,0,	uvr,uvb,	c1,c2,c3,c4,	m,
+			t = t * -1
+			b = b * -1
+
+			V :[40]f32 = { 
+				l,b,-1,	uvl,uvb,	c1,c2,c3,c4,	m,
+				l,t,-1,	uvl,uvt,	c1,c2,c3,c4,	m,
+				r,t,-1,	uvr,uvt,	c1,c2,c3,c4,	m,
+				r,b,- 1,	uvr,uvb,	c1,c2,c3,c4,	m,
+			}
+			copy(Show.State.glState.Vertices[Show.State.glState.VIndex:Show.State.glState.VIndex+40], V[:])
+			Show.State.glState.VIndex += 40
+			
+			QI := u32(Show.State.glState.QuadIndex * 4)
+			I :[6]u32 = {0+QI, 1+QI, 2+QI, 0+QI, 2+QI, 3+QI}
+			copy(Show.State.glState.Indices[Show.State.glState.IIndex:Show.State.glState.IIndex+6], I[:])
+			Show.State.glState.IIndex += 6
+			Show.State.glState.QuadIndex += 1
+
+			// NOTE DEBUG
+			Show.Debug.UICharacters += 1
 		}
-		copy(Show.State.glState.Vertices[Show.State.glState.VIndex:Show.State.glState.VIndex+40], V[:])
-		Show.State.glState.VIndex += 40
-		
-		QI := u32(Show.State.glState.QuadIndex * 4);
-		I :[6]u32 = {0+QI, 1+QI, 2+QI, 0+QI, 2+QI, 3+QI};
-		copy(Show.State.glState.Indices[Show.State.glState.IIndex:Show.State.glState.IIndex+6], I[:]);
-		Show.State.glState.IIndex += 6;
-		Show.State.glState.QuadIndex += 1;
 	}
 }

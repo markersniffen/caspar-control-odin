@@ -2,17 +2,28 @@ package cc
 
 import "core:fmt"
 
+// NOTE Global
 Show : ^show
 
 show :: struct
 {
 	State: state,
 	Debug: debug,
+	Data: data,
 }
 
 debug :: struct
 {
 	UIQuads: int,
+	UICharactersLast: int,
+	UICharacters: int,
+ 	UIElements: int,
+ 	UIVertices: int,
+}
+
+data :: struct
+{
+	Pages: [dynamic]page,
 }
 
 state :: struct
@@ -35,18 +46,24 @@ state :: struct
 
 	// UI
 	UIPanelHot: uid,
+	UIPanelRendering: uid,
 	UIIndex: int,
 	UIPanelCTX: v4,
 	UIMasterPanelUID: uid,
 	UIPanels: map[uid]^ui_panel,
 	CTX: v4,
 	UILastChar: rune,
-	// UICharIndex: int,
+	UICharIndex: int,
+	UITempText: short_string,
 
 	// ???
 	UIElementActive: int,
-	UIElementList: map[string]bool,
-	UIElementIterator: int, 
+	UIElementsState: map[string]bool,
+	UIElementIterator: int,
+
+	TestValue: f64,
+	TestText: short_string,
+	TestGrid: grid,
 }
 
 key_state :: struct
@@ -98,13 +115,12 @@ ShowInit :: proc()
 {
 	OpenglInit()
 	STBFontInit()
+	LoadCSV("../assets/data.csv")
 	UIInit()
 }
 
 ShowUpdateAndRender :: proc()
 {
-
-
 	UIUpdate()
 	OpenglRender()
 

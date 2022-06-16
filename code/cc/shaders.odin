@@ -18,7 +18,7 @@ void main()
 	vertex_color = color;
 	texture_mix = mix_texture;
 	gl_Position.xyz = position;
-    gl_Position.w = 1;
+    //gl_Position.w = 1;
 }
 `
 
@@ -46,14 +46,6 @@ void main()
 	}
 }
 `
-
-
-
-
-
-
-
-
 //- NOTE FONT SHADER 
 FONT_VS ::
 `
@@ -84,7 +76,7 @@ out vec4 FragColor;
 
 void main()
 {
-	FragColor = vertexColor.aaaa;
+	FragColor = vertexColor.rgba;
 }
 `
 

@@ -1,1 +1,1 @@
-odin run ../code/. -debug
+odin run ../code
