@@ -45,22 +45,22 @@ state :: struct
 	MouseScroll: f64,
 
 	// UI
-	UIPanelHot: uid,
-	UIPanelRendering: uid,
-	UIIndex: int,
-	UIPanelCTX: v4,
 	UIMasterPanelUID: uid,
+	UIPanelRendering: uid,
+	UIPanelHot: uid,
 	UIPanels: map[uid]^ui_panel,
+	UIPanelCTX: v4,
 	CTX: v4,
-	UILastChar: rune,
+	UIIndex: int,
 	UICharIndex: int,
-	UITempText: short_string,
-
+	UILastChar: rune,
+	
 	// ???
 	UIElementActive: int,
 	UIElementsState: map[string]bool,
 	UIElementIterator: int,
 
+	UITempText: short_string,
 	TestValue: f64,
 	TestText: short_string,
 	TestGrid: grid,
@@ -121,6 +121,7 @@ ShowInit :: proc()
 
 ShowUpdateAndRender :: proc()
 {
+	OpenglPreRender()
 	UIUpdate()
 	OpenglRender()
 

@@ -43,7 +43,55 @@ UIInit			:: proc()
 UIUpdate		:: proc()
 {
 	Show.State.UIPanelCTX = {0,0,Show.State.WindowRes.x, Show.State.WindowRes.y}
-	UIRenderPanel(Show.State.UIMasterPanelUID)
+	UICalcPanel(Show.State.UIMasterPanelUID)
+}
+
+UICalcPanel	:: proc(UID: uid)
+{
+	P, Ok := Show.State.UIPanels[UID]
+	if Ok
+	{
+		P.CTX = Show.State.UIPanelCTX
+
+		CTXa: v4
+		CTXb: v4
+		L := P.CTX[0]
+		T := P.CTX[1]
+		R := P.CTX[2]
+		B := P.CTX[3]
+		ChildA, Cok := Show.State.UIPanels[P.Children[0]]
+		if Cok
+		{
+			if ChildA.Direction == .X // minus key
+			{
+				L = P.CTX[0]
+				T = P.CTX[1]
+				R = ((P.CTX[2] - P.CTX[0]) * P.Size) + P.CTX[0]
+				B = P.CTX[3]
+				CTXa	= { L,T,R,B }
+				CTXb	= { R,T,P.CTX[2],P.CTX[3]}
+			} else {				  // plus key
+				L = P.CTX[0]
+				T = P.CTX[1]
+				R = P.CTX[2]
+				B = P.CTX[3] - ((P.CTX[3] - P.CTX[1]) * P.Size);
+				CTXa	= { L,T,R,B }
+				CTXb	= { L,B,R,P.CTX[3]}
+			}
+			Show.State.UIPanelCTX = CTXa
+			UICalcPanel(P.Children[0])
+			Show.State.UIPanelCTX = CTXb
+			UICalcPanel(P.Children[1])
+		} else {
+			W := P.CTX[2] - P.CTX[0]
+			H := P.CTX[3] - P.CTX[1]
+			WindowPos : [4]i32 = { i32(P.CTX[0]), i32(P.CTX[1]), i32(W), i32(H) }
+			NewCTX :v4 = {0, 0, W, H}
+			UIPanel(UID)
+			OpenglRenderPanel(WindowPos)
+
+		}
+	}
 }
 
 UICreatePanel	:: proc(PUID: uid, Direction: ui_direction, Size: f64, Type: int) -> (uid, uid)
@@ -128,48 +176,6 @@ UIDeletePanel	:: proc(UID:uid)
 		}
 	} else {
 		fmt.println("failed to find panel:", Panel)
-	}
-}
-
-UIRenderPanel	:: proc(UID: uid)
-{
-	P, Ok := Show.State.UIPanels[UID]
-	if Ok
-	{
-		P.CTX = Show.State.UIPanelCTX
-
-		CTXa: v4
-		CTXb: v4
-		L := P.CTX[0]
-		T := P.CTX[1]
-		R := P.CTX[2]
-		B := P.CTX[3]
-		ChildA, Cok := Show.State.UIPanels[P.Children[0]]
-		if Cok
-		{
-			if ChildA.Direction == .X // minus key
-			{
-				L = P.CTX[0]
-				T = P.CTX[1]
-				R = ((P.CTX[2] - P.CTX[0]) * P.Size) + P.CTX[0]
-				B = P.CTX[3]
-				CTXa	= { L,T,R,B }
-				CTXb	= { R,T,P.CTX[2],P.CTX[3]}
-			} else {				  // plus key
-				L = P.CTX[0]
-				T = P.CTX[1]
-				R = P.CTX[2]
-				B = P.CTX[3] - ((P.CTX[3] - P.CTX[1]) * P.Size);
-				CTXa	= { L,T,R,B }
-				CTXb	= { L,B,R,P.CTX[3]}
-			}
-			Show.State.UIPanelCTX = CTXa
-			UIRenderPanel(P.Children[0])
-			Show.State.UIPanelCTX = CTXb
-			UIRenderPanel(P.Children[1])
-		} else {
-			UIPanel(UID)
-		}
 	}
 }
 

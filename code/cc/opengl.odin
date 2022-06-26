@@ -36,12 +36,15 @@ opengl_state :: struct
 	STBCharData: []stb.bakedchar,
 	STBCharDataBold: []stb.bakedchar,
 	Texture: u32,
+	PanelTexture: u32,
 }
 
 OpenglInit :: proc()
 {
 	gl.load_up_to(GL_MAJOR_VERSION, GL_MINOR_VERSION, glfw.gl_set_proc_address)
 	gl.Enable(gl.BLEND)
+	gl.Enable(gl.SCISSOR_TEST)
+
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	// gl.Enable(gl.DEPTH_TEST)
 
@@ -58,53 +61,84 @@ OpenglInit :: proc()
 	if !shader_success do fmt.println("UIMAIN shader did not compile!")
 	// Show.State.glState.texture_shader, shader_success = gl.load_shaders_source(TEXTURE_VS, TEXTURE_FRAG)
 	// if !shader_success do fmt.println("TEXTURE shader did not compile!")
+}
 
-	// -------------------------------------------------------------------------------- //
-	// TODO load image (get rid of or implement into separate function the eventually)
+OpenglLoadImageToTexture :: proc(path:string, glTexture:^u32)
+{
 	options : image.Options
-	img, err := png.load("images/dogs.png", options)
+	img, err := png.load(path, options)
 	fmt.println(err)
 	fmt.println(img.width, img.height, img.channels, img.depth)
 	// Create & Bind texture
-	gl.GenTextures(1, &Show.State.glState.Texture)
-	gl.BindTexture(gl.TEXTURE_2D, Show.State.glState.Texture)
+	gl.GenTextures(1, glTexture)
+	gl.BindTexture(gl.TEXTURE_2D, glTexture^)
 	gl.GenerateMipmap(gl.TEXTURE_2D)
 	
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	// gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, i32(img.width), i32(img.height), 0, gl.RGBA, gl.UNSIGNED_BYTE, raw_data(img.pixels.buf))
+}
 
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, i32(img.width), i32(img.height), 0, gl.RGBA, gl.UNSIGNED_BYTE, raw_data(img.pixels.buf))
+OpenglRenderUI :: proc() // NOTE Not used right now...
+{
+
+	gl.Viewport(0, 0, i32(Show.State.WindowRes.x), i32(Show.State.WindowRes.y))
+	
+	gl.UseProgram(Show.State.glState.ui_shader)
+	gl.BindTexture(gl.TEXTURE_2D, Show.State.glState.STBTexture)
+
+	Vertices:= 	Show.State.glState.Vertices
+	Indices:=	Show.State.glState.Indices
+	
+	gl.BindBuffer(gl.ARRAY_BUFFER, Show.State.glState.VertexBuffer);
+	gl.BufferData(gl.ARRAY_BUFFER, Show.State.glState.VIndex * size_of(f32), &Vertices[0], gl.STATIC_DRAW);
+	
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 10 * size_of(f32), 0 * size_of(f32))
+	gl.EnableVertexAttribArray(0)
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, gl.FALSE, 10 * size_of(f32), 3 * size_of(f32))
+	gl.EnableVertexAttribArray(1)
+	gl.VertexAttribPointer(2, 4, gl.FLOAT, gl.FALSE, 10 * size_of(f32), 5 * size_of(f32))
+	gl.EnableVertexAttribArray(2)
+	gl.VertexAttribPointer(3, 1, gl.FLOAT, gl.FALSE, 10 * size_of(f32), 9 * size_of(f32))
+	gl.EnableVertexAttribArray(3)
+
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, Show.State.glState.IndexBuffer);
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, Show.State.glState.IIndex * size_of(u32), &Indices[0], gl.STATIC_DRAW);
+
+	gl.DrawElements(gl.TRIANGLES, i32(Show.State.glState.IIndex), gl.UNSIGNED_INT, nil);
+}
+
+
+OpenglPreRender :: proc()
+{
+	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
+	gl.ClearColor(0, 0, 0, 1)
+	gl.Viewport(0, 0, i32(Show.State.WindowRes.x), i32(Show.State.WindowRes.y))
+	gl.Scissor(0, 0, i32(Show.State.WindowRes.x), i32(Show.State.WindowRes.y))
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 }
 
 OpenglRender :: proc()
 {
-
-	gl.BindFramebuffer(gl.FRAMEBUFFER, 0);
-	gl.Viewport(0, 0, i32(Show.State.WindowRes.x), i32(Show.State.WindowRes.y));
-	gl.ClearColor(0, 0, 0, 1)
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
-	OpenglRenderUI()
-
 	glfw.SwapBuffers(Show.State.glState.Window)
 
+
+
+
 	Show.Debug.UIQuads = Show.State.glState.QuadIndex
-	
 	Show.Debug.UICharactersLast = Show.Debug.UICharacters
 	Show.Debug.UICharacters = 0
-	
 	Show.Debug.UIElements = Show.State.glState.QuadIndex
 	Show.Debug.UIQuads = Show.State.glState.QuadIndex
 	Show.Debug.UIVertices = Show.State.glState.VIndex
-	Show.State.glState.QuadIndex = 0;
-	Show.State.glState.VIndex = 0
-	Show.State.glState.IIndex = 0
 }
 
-OpenglRenderUI :: proc()
+
+OpenglRenderPanel :: proc(Quad: [4]i32)
 {
+	gl.Scissor(Quad[0], Quad[1], Quad[2], Quad[3])
 
 	gl.UseProgram(Show.State.glState.ui_shader)
 	gl.BindTexture(gl.TEXTURE_2D, Show.State.glState.STBTexture)
@@ -128,6 +162,10 @@ OpenglRenderUI :: proc()
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, Show.State.glState.IIndex * size_of(u32), &Indices[0], gl.STATIC_DRAW);
 
 	gl.DrawElements(gl.TRIANGLES, i32(Show.State.glState.IIndex), gl.UNSIGNED_INT, nil);
+
+	Show.State.glState.QuadIndex = 0
+	Show.State.glState.VIndex = 0
+	Show.State.glState.IIndex = 0
 }
 
 PushQuad :: proc(Q: v4, UV: [4]f32, Color: v4, Border: f32, ForceDraw:bool = false)
@@ -203,7 +241,7 @@ PushQuad :: proc(Q: v4, UV: [4]f32, Color: v4, Border: f32, ForceDraw:bool = fal
 			else
 			// NOTE Quad as border (techincally 4 quads)
 			{
-				// TODO NEED OT FIX THIS
+				// TODO NEED OT FIX THIS?
 				L := (Quad[0] - W) / W;
 				T := (Quad[1] - H) / H;
 				R := (Quad[2] - W) / W;
@@ -242,48 +280,4 @@ PushQuad :: proc(Q: v4, UV: [4]f32, Color: v4, Border: f32, ForceDraw:bool = fal
 			}
 		}
 	}
-}
-
-OpenglRectTest :: proc()
-{
-	gl.UseProgram(Show.State.glState.ui_shader);
-	gl.BindTexture(gl.TEXTURE_2D, Show.State.glState.STBTexture);
-
-	Vertices: [80]f32 = {
-		// position			UV 			Color 		Texture Mix
-	   	-1, 	-1, 0.0,	1.0, 1.0,	1,0,0,1,	0.5,
-	    -1,	 	 0, 0.0,	1.0, 0.0,	1,0,0,1,	0.5,
-	     0, 	 0, 0.0,	0.0, 0.0,	0,0,0,1,	0.5,
-	     0, 	-1, 0.0,	0.0, 1.0,	0,0,0,1,	0.5,
-
-	     0.5, 0.5, 0.0,		1.0, 1.0,	1,1,1,0.5,	0.5,
-	     0.5, 0.8, 0.0,		1.0, 0.0,	1,1,1,0.5,	0.5,
-	     0.8, 0.8, 0.0,		0.0, 0.0,	1,1,1,0.5,	0.5,
-	     0.8, 0.5, 0.0,		0.0, 1.0,	1,1,1,0.5,	0.5,
-	}
-
-	Indices: [12]u32 = {	
-		0,1,2, // first quad
-        0,2,3,
-        4,5,6, // second quad
-        4,6,7,
-	}
-	
-	gl.BindBuffer(gl.ARRAY_BUFFER, Show.State.glState.VertexBuffer);
-	gl.BufferData(gl.ARRAY_BUFFER, size_of(Vertices), &Vertices[0], gl.STATIC_DRAW);
-	
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 10 * size_of(f32), 0 * size_of(f32))
-	gl.EnableVertexAttribArray(0)
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, gl.FALSE, 10 * size_of(f32), 3 * size_of(f32))
-	gl.EnableVertexAttribArray(1)
-	gl.VertexAttribPointer(2, 4, gl.FLOAT, gl.FALSE, 10 * size_of(f32), 5 * size_of(f32))
-	gl.EnableVertexAttribArray(2)
-	gl.VertexAttribPointer(3, 1, gl.FLOAT, gl.FALSE, 10 * size_of(f32), 9 * size_of(f32))
-	gl.EnableVertexAttribArray(3)
-
-
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, Show.State.glState.IndexBuffer);
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, size_of(Indices), &Indices[0], gl.STATIC_DRAW);
-
-	gl.DrawElements(gl.TRIANGLES, 12, gl.UNSIGNED_INT, nil);
 }

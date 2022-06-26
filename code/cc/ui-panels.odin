@@ -99,9 +99,14 @@ UIPanel 	:: proc(PUID: uid)
 
 		// set context to top left of panel
 		NewCTX :v4 = {Panel.CTX[0] + UI_MARGIN, Panel.CTX[1] + UI_MARGIN, Panel.CTX[2] - UI_MARGIN, Panel.CTX[1] + UI_MARGIN + UI_HEIGHT }
-		Show.State.CTX = NewCTX
-		// Show.State.CTX = OffsetQuad(NewCTX, Panel.Offset)
+		// W := Panel.CTX[2] - Panel.CTX[0]
+		// H := Panel.CTX[3] - Panel.CTX[1]
+		// NewCTX :v4 = {0, 0, W, H}
 
+
+		// Show.State.CTX = NewCTX
+		Show.State.CTX = OffsetQuad(NewCTX, Panel.Offset)
+		
 		// render the panel
 		if Panel.Type == 0 do DebugPanel(PUID)
 		if Panel.Type == 1 do GridPanel(PUID)
@@ -157,8 +162,7 @@ GridPanel :: proc(UID: uid)
 		{
 			if UIDropDown(Page.Table)
 			{
-				fmt.println(Panel.Offset[1], int(Panel.Offset[1]))
-				UIGrid(Show.Data.Pages[p].RawData, int(Panel.Offset[1])/10)
+				UIGrid(Show.Data.Pages[p].RawData, 0)
 			}
 		}
 	}
